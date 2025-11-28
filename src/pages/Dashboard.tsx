@@ -29,6 +29,15 @@ interface UserStreak {
   total_lessons_completed: number;
 }
 
+interface Lesson {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  duration_minutes: number;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,6 +45,7 @@ const Dashboard = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [streak, setStreak] = useState<UserStreak | null>(null);
+  const [todayLesson, setTodayLesson] = useState<Lesson | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -78,7 +88,7 @@ const Dashboard = () => {
         .from("profiles")
         .select("full_name, job_title, company")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
       
       if (profileData) {
         setProfile(profileData);
@@ -89,10 +99,23 @@ const Dashboard = () => {
         .from("user_streaks")
         .select("current_streak, longest_streak, total_lessons_completed")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
       
       if (streakData) {
         setStreak(streakData);
+      }
+
+      // Fetch today's lesson (first published lesson)
+      const { data: lessonData } = await supabase
+        .from("lessons")
+        .select("id, title, description, category, difficulty, duration_minutes")
+        .eq("is_published", true)
+        .order("order_index", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      
+      if (lessonData) {
+        setTodayLesson(lessonData);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -210,28 +233,35 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Executive Communication: Delivering Bad News</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Learn how to communicate difficult decisions with empathy and clarity. 
-                  Practice scenario-based responses to real workplace situations.
-                </p>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1">
-                    <BookOpen className="h-4 w-4" />
-                    5 min
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <TrendingUp className="h-4 w-4" />
-                    Intermediate
-                  </span>
+            {todayLesson ? (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">{todayLesson.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {todayLesson.description}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                    <span className="flex items-center gap-1">
+                      <BookOpen className="h-4 w-4" />
+                      {todayLesson.duration_minutes} min
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <TrendingUp className="h-4 w-4" />
+                      {todayLesson.difficulty.charAt(0).toUpperCase() + todayLesson.difficulty.slice(1)}
+                    </span>
+                  </div>
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto" 
+                    onClick={() => navigate(`/lesson/${todayLesson.id}`)}
+                  >
+                    Start Today's Lesson
+                  </Button>
                 </div>
-                <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate("/lesson/sample-lesson-id")}>
-                  Start Today's Lesson
-                </Button>
               </div>
-            </div>
+            ) : (
+              <p className="text-muted-foreground">No lessons available yet.</p>
+            )}
           </CardContent>
         </Card>
 
