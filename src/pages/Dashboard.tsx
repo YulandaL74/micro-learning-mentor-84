@@ -20,6 +20,7 @@ import {
   Target
 } from "lucide-react";
 import { SkillAssessmentModal } from "@/components/SkillAssessmentModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface UserProfile {
   full_name: string | null;
@@ -252,6 +253,7 @@ const Dashboard = () => {
               <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
               <p className="text-xs text-muted-foreground">{profile?.job_title || "Professional"}</p>
             </div>
+            <ThemeToggle />
             <Button variant="outline" size="icon" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
