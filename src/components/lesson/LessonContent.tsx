@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BookOpen, CheckCircle2 } from "lucide-react";
 
 interface LessonContentProps {
@@ -38,42 +37,42 @@ export const LessonContent = ({ content, scenarioText, onComplete }: LessonConte
       )}
 
       {sections.length > 0 ? (
-        <Accordion type="multiple" defaultValue={sections.map((_, i) => `section-${i}`)} className="space-y-4">
+        <div className="space-y-6">
           {sections.map((section: any, index: number) => (
-            <AccordionItem key={index} value={`section-${index}`} className="border rounded-lg">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50 [&[data-state=open]]:bg-muted/50">
-                <div className="flex items-center gap-3 text-left">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-bold text-primary">{index + 1}</span>
-                  </div>
+            <Card key={index} className="p-6 border-2 border-primary/20 shadow-md">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+                  <span className="text-lg font-bold text-primary-foreground">{index + 1}</span>
+                </div>
+                <div className="flex-1">
                   {section.title && (
-                    <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
+                    <h3 className="text-xl font-bold mb-3 text-foreground">{section.title}</h3>
                   )}
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                {section.content && (
-                  <div className="prose prose-sm max-w-none mb-4">
-                    <p className="text-base text-muted-foreground leading-relaxed">{section.content}</p>
-                  </div>
-                )}
-                {section.bullets && Array.isArray(section.bullets) && section.bullets.length > 0 && (
-                  <div className="mt-4 bg-muted/30 rounded-lg p-4">
-                    <p className="text-sm font-semibold mb-3 text-foreground">Key Points:</p>
-                    <ul className="space-y-3">
-                      {section.bullets.map((bullet: string, bulletIndex: number) => (
-                        <li key={bulletIndex} className="flex items-start gap-3">
-                          <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                          <span className="text-sm text-foreground leading-relaxed">{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
+              </div>
+              
+              {section.content && (
+                <div className="prose prose-sm max-w-none mb-4 pl-14">
+                  <p className="text-base text-foreground leading-relaxed">{section.content}</p>
+                </div>
+              )}
+              
+              {section.bullets && Array.isArray(section.bullets) && section.bullets.length > 0 && (
+                <div className="mt-4 ml-14 bg-primary/5 border border-primary/20 rounded-lg p-5">
+                  <p className="text-sm font-bold mb-4 text-primary uppercase tracking-wide">Key Points</p>
+                  <ul className="space-y-3">
+                    {section.bullets.map((bullet: string, bulletIndex: number) => (
+                      <li key={bulletIndex} className="flex items-start gap-3">
+                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-base text-foreground leading-relaxed font-medium">{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Card>
           ))}
-        </Accordion>
+        </div>
       ) : (
         <Card className="p-8 text-center">
           <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
