@@ -177,6 +177,39 @@ export type Database = {
           },
         ]
       }
+      skill_assessments: {
+        Row: {
+          category: string
+          completed_at: string
+          confidence_score: number
+          created_at: string
+          id: string
+          level: string
+          responses: Json
+          user_id: string
+        }
+        Insert: {
+          category: string
+          completed_at?: string
+          confidence_score: number
+          created_at?: string
+          id?: string
+          level: string
+          responses?: Json
+          user_id: string
+        }
+        Update: {
+          category?: string
+          completed_at?: string
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          level?: string
+          responses?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

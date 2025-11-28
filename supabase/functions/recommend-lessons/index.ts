@@ -54,6 +54,13 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
+    // Fetch user skill assessments
+    const { data: assessments } = await supabaseClient
+      .from("skill_assessments")
+      .select("category, level, confidence_score")
+      .eq("user_id", user.id)
+      .order("completed_at", { ascending: false });
+
     // Fetch all available lessons
     const { data: allLessons } = await supabaseClient
       .from("lessons")
@@ -74,6 +81,14 @@ serve(async (req) => {
     console.log(`User has completed ${completedLessonIds.length} lessons`);
     console.log(`${availableLessons.length} lessons available`);
 
+    // Get most recent assessment per category
+    const latestAssessments = assessments?.reduce((acc, assessment) => {
+      if (!acc[assessment.category]) {
+        acc[assessment.category] = assessment;
+      }
+      return acc;
+    }, {} as Record<string, any>) || {};
+
     // Prepare context for AI
     const userContext = {
       profile: {
@@ -85,6 +100,8 @@ serve(async (req) => {
         current_streak: streaks?.current_streak || 0,
         total_completed: streaks?.total_lessons_completed || 0,
       },
+      skill_levels: latestAssessments,
+      has_assessment: Object.keys(latestAssessments).length > 0,
       completed_lessons_count: completedLessonIds.length,
       available_lessons: availableLessons.map((l) => ({
         id: l.id,
@@ -102,16 +119,32 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert learning advisor for a micro-learning platform focused on professional development. Analyze the user's profile, progress, and available lessons to recommend 3-5 personalized lessons that would be most valuable for their career growth.
+    const systemPrompt = `You are an expert learning advisor for a micro-learning platform focused on professional development. Analyze the user's profile, progress, skill assessment, and available lessons to recommend 3-5 personalized lessons that would be most valuable for their career growth.
 
 Consider:
 - User's job title and role
+- Skill assessment levels (if available) - match difficulty to assessed level
 - Learning progress and streak (consistency matters)
-- Lesson difficulty progression (gradual increase)
+- Lesson difficulty progression (gradual increase from assessed level)
 - Category diversity (mix different skill areas)
 - Career relevance for their role
 
+IMPORTANT: If skill assessments are available, prioritize lessons that match or slightly exceed the assessed level for each category. For example:
+- If assessed as "beginner" in a category, recommend beginner and some intermediate lessons
+- If assessed as "intermediate", recommend intermediate and some advanced lessons  
+- If assessed as "advanced", focus on advanced lessons in that category
+
 Provide recommendations with clear rationale focusing on career impact and skill development.`;
+
+    let assessmentInfo = "";
+    if (userContext.has_assessment) {
+      assessmentInfo = `\n\nSkill Assessment Results:
+${Object.entries(latestAssessments).map(([cat, data]: [string, any]) => 
+  `- ${cat.replace(/_/g, " ")}: ${data.level} (confidence: ${data.confidence_score}/3)`
+).join("\n")}
+
+CRITICAL: Use these assessment results to recommend lessons at the appropriate difficulty level for each category.`;
+    }
 
     const userPrompt = `Analyze this user's learning profile and recommend 3-5 specific lessons from the available list:
 
@@ -120,14 +153,14 @@ User Profile:
 - Role: ${userContext.profile.job_title}
 - Company: ${userContext.profile.company}
 - Current Streak: ${userContext.stats.current_streak} days
-- Total Completed: ${userContext.stats.total_completed} lessons
+- Total Completed: ${userContext.stats.total_completed} lessons${assessmentInfo}
 
 Available Lessons (${availableLessons.length} total):
 ${JSON.stringify(userContext.available_lessons, null, 2)}
 
 Return a JSON array of 3-5 lesson recommendations. For each recommendation, include:
 - lesson_id (from the available lessons)
-- reason (one sentence explaining why this lesson is valuable for this user's career)
+- reason (one sentence explaining why this lesson is valuable for this user's career and current skill level)
 - priority (1-5, where 1 is highest priority)
 
 Format: [{"lesson_id": "...", "reason": "...", "priority": 1}, ...]`;
