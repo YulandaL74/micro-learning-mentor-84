@@ -1,1 +1,4 @@
 project_id = "huvejkapzlsqgqiqfrmf"
+
+[functions.recommend-lessons]
+verify_jwt = true
