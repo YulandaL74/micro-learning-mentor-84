@@ -16,8 +16,10 @@ import {
   LogOut,
   User as UserIcon,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Target
 } from "lucide-react";
+import { SkillAssessmentModal } from "@/components/SkillAssessmentModal";
 
 interface UserProfile {
   full_name: string | null;
@@ -56,6 +58,8 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<RecommendedLesson[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [showAssessment, setShowAssessment] = useState(false);
+  const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -126,6 +130,15 @@ const Dashboard = () => {
       if (lessonData) {
         setTodayLesson(lessonData);
       }
+
+      // Check if user has completed assessment
+      const { data: assessmentData } = await supabase
+        .from("skill_assessments")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1);
+      
+      setHasCompletedAssessment((assessmentData?.length || 0) > 0);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -177,6 +190,15 @@ const Dashboard = () => {
       fetchRecommendations();
     }
   }, [user, isLoading]);
+
+  const handleAssessmentComplete = () => {
+    setHasCompletedAssessment(true);
+    fetchRecommendations();
+    toast({
+      title: "Recommendations Updated",
+      description: "Your learning path has been personalized based on your assessment.",
+    });
+  };
 
   const handleLogout = async () => {
     try {
@@ -325,6 +347,31 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Skill Assessment Banner */}
+        {!hasCompletedAssessment && (
+          <Card className="mb-8 border-primary/50 bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Target className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-1">Take Your Skill Assessment</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Complete a quick 9-question assessment to get personalized lesson recommendations tailored to your current skill level and career goals.
+                  </p>
+                  <Button onClick={() => setShowAssessment(true)}>
+                    <Target className="h-4 w-4 mr-2" />
+                    Start Assessment
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* AI Recommendations */}
         <Card className="mb-8">
           <CardHeader>
@@ -334,26 +381,43 @@ const Dashboard = () => {
                   <Sparkles className="h-5 w-5 text-primary" />
                   <CardTitle>AI-Powered Recommendations</CardTitle>
                 </div>
-                <CardDescription>Personalized lessons based on your goals and progress</CardDescription>
+                <CardDescription>
+                  {hasCompletedAssessment 
+                    ? "Personalized lessons based on your skill assessment and progress"
+                    : "Personalized lessons based on your goals and progress"
+                  }
+                </CardDescription>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchRecommendations}
-                disabled={isLoadingRecommendations}
-              >
-                {isLoadingRecommendations ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </>
+              <div className="flex gap-2">
+                {hasCompletedAssessment && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAssessment(true)}
+                  >
+                    <Target className="h-4 w-4 mr-2" />
+                    Retake
+                  </Button>
                 )}
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchRecommendations}
+                  disabled={isLoadingRecommendations}
+                >
+                  {isLoadingRecommendations ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -448,6 +512,13 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Skill Assessment Modal */}
+      <SkillAssessmentModal
+        open={showAssessment}
+        onOpenChange={setShowAssessment}
+        onComplete={handleAssessmentComplete}
+      />
     </div>
   );
 };
