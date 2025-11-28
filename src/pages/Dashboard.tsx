@@ -227,7 +227,7 @@ const Dashboard = () => {
                     Intermediate
                   </span>
                 </div>
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate("/lesson/sample-lesson-id")}>
                   Start Today's Lesson
                 </Button>
               </div>
