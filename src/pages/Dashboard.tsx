@@ -166,6 +166,10 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => navigate("/lessons")}>
+              <BookOpen className="h-4 w-4 mr-2" />
+              Browse Lessons
+            </Button>
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
               <p className="text-xs text-muted-foreground">{profile?.job_title || "Professional"}</p>
