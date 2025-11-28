@@ -276,7 +276,15 @@ const LessonPlayer = () => {
 
       {/* Progress Bar */}
       <div className="border-b bg-card/50">
-        <div className="container mx-auto px-4 py-2">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">
+              {currentStep === 'content' ? 'Step 1: Lesson Content' : 'Step 2: Quiz'}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {currentStep === 'content' ? '50%' : '100%'} Complete
+            </span>
+          </div>
           <Progress value={currentStep === 'content' ? 50 : 100} className="h-2" />
         </div>
       </div>
