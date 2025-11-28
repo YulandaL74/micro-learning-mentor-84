@@ -14,7 +14,9 @@ import {
   BookOpen, 
   TrendingUp,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  Sparkles,
+  RefreshCw
 } from "lucide-react";
 
 interface UserProfile {
@@ -38,6 +40,11 @@ interface Lesson {
   duration_minutes: number;
 }
 
+interface RecommendedLesson extends Lesson {
+  recommendation_reason: string;
+  priority: number;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -47,6 +54,8 @@ const Dashboard = () => {
   const [streak, setStreak] = useState<UserStreak | null>(null);
   const [todayLesson, setTodayLesson] = useState<Lesson | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<RecommendedLesson[]>([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -121,6 +130,53 @@ const Dashboard = () => {
       console.error("Error fetching user data:", error);
     }
   };
+
+  const fetchRecommendations = async () => {
+    if (!user) return;
+    
+    setIsLoadingRecommendations(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("recommend-lessons", {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error("Error fetching recommendations:", error);
+        toast({
+          title: "Unable to load recommendations",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.recommendations) {
+        setRecommendations(data.recommendations);
+        toast({
+          title: "Recommendations updated",
+          description: `Found ${data.recommendations.length} personalized lessons for you.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load recommendations.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
+
+  // Fetch recommendations on mount
+  useEffect(() => {
+    if (user && !isLoading) {
+      fetchRecommendations();
+    }
+  }, [user, isLoading]);
 
   const handleLogout = async () => {
     try {
@@ -265,6 +321,98 @@ const Dashboard = () => {
               </div>
             ) : (
               <p className="text-muted-foreground">No lessons available yet.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* AI Recommendations */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <CardTitle>AI-Powered Recommendations</CardTitle>
+                </div>
+                <CardDescription>Personalized lessons based on your goals and progress</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchRecommendations}
+                disabled={isLoadingRecommendations}
+              >
+                {isLoadingRecommendations ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingRecommendations && recommendations.length === 0 ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-4 bg-secondary rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-secondary/50 rounded w-full mb-3"></div>
+                    <div className="h-8 bg-secondary rounded w-32"></div>
+                  </div>
+                ))}
+              </div>
+            ) : recommendations.length > 0 ? (
+              <div className="space-y-4">
+                {recommendations.slice(0, 3).map((lesson, idx) => (
+                  <div
+                    key={lesson.id}
+                    className="p-4 border rounded-lg hover:bg-accent/5 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          {idx === 0 && (
+                            <Badge variant="default" className="text-xs">
+                              Top Pick
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-xs">
+                            {lesson.category.replace(/_/g, " ")}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {lesson.difficulty}
+                          </Badge>
+                        </div>
+                        <h4 className="font-semibold mb-2">{lesson.title}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {lesson.description}
+                        </p>
+                        <p className="text-sm text-primary italic flex items-start gap-2">
+                          <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>{lesson.recommendation_reason}</span>
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => navigate(`/lesson/${lesson.id}`)}
+                        size="sm"
+                      >
+                        Start
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Loading personalized recommendations...</p>
+              </div>
             )}
           </CardContent>
         </Card>
