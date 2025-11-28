@@ -38,6 +38,7 @@ const LessonPlayer = () => {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentStep, setCurrentStep] = useState<'content' | 'quiz'>('content');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [startTime] = useState(Date.now());
 
   useEffect(() => {
@@ -124,9 +125,15 @@ const LessonPlayer = () => {
   };
 
   const handleLessonComplete = async (score: number) => {
+    if (isSaving) return; // Prevent duplicate submissions
+    
+    setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
 
       const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
@@ -142,15 +149,23 @@ const LessonPlayer = () => {
         .eq("user_id", user.id)
         .eq("lesson_id", lessonId);
 
-      if (progressError) throw progressError;
+      if (progressError) {
+        console.error("Progress update error:", progressError);
+        throw progressError;
+      }
 
       // Update streak data
       const today = new Date().toISOString().split('T')[0];
-      const { data: streakData } = await supabase
+      const { data: streakData, error: streakFetchError } = await supabase
         .from("user_streaks")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (streakFetchError) {
+        console.error("Streak fetch error:", streakFetchError);
+        throw streakFetchError;
+      }
 
       if (streakData) {
         const lastActivityDate = streakData.last_activity_date;
@@ -159,15 +174,20 @@ const LessonPlayer = () => {
         const yesterdayStr = yesterday.toISOString().split('T')[0];
 
         let newStreak = streakData.current_streak;
+        
+        // Only update streak if this is a new day
         if (lastActivityDate === yesterdayStr) {
+          // Consecutive day - increment streak
           newStreak += 1;
         } else if (lastActivityDate !== today) {
+          // Missed a day - reset streak
           newStreak = 1;
         }
+        // If lastActivityDate === today, keep current streak (same day completion)
 
         const longestStreak = Math.max(newStreak, streakData.longest_streak);
 
-        await supabase
+        const { error: streakUpdateError } = await supabase
           .from("user_streaks")
           .update({
             current_streak: newStreak,
@@ -177,21 +197,35 @@ const LessonPlayer = () => {
             updated_at: new Date().toISOString(),
           })
           .eq("user_id", user.id);
+
+        if (streakUpdateError) {
+          console.error("Streak update error:", streakUpdateError);
+          throw streakUpdateError;
+        }
       }
+
+      // Show success message with streak info
+      const message = streakData && streakData.last_activity_date !== today
+        ? `You scored ${score}%. Streak: ${streakData.current_streak + 1} days! 🔥`
+        : `You scored ${score}%. Great work!`;
 
       toast({
         title: "Lesson Complete! 🎉",
-        description: `You scored ${score}%. Great work!`,
+        description: message,
       });
 
-      navigate("/dashboard");
+      // Small delay to let the user see the completion message
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (error: any) {
       console.error("Error completing lesson:", error);
       toast({
         title: "Error",
-        description: "Failed to save progress",
+        description: error.message || "Failed to save progress. Please try again.",
         variant: "destructive",
       });
+      setIsSaving(false);
     }
   };
 
@@ -263,7 +297,14 @@ const LessonPlayer = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {currentStep === 'content' ? (
+            {isSaving ? (
+              <div className="text-center py-12 space-y-4">
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+                <p className="text-muted-foreground">Saving your progress...</p>
+              </div>
+            ) : currentStep === 'content' ? (
               <LessonContent
                 content={lesson.content}
                 scenarioText={lesson.scenario_text}
