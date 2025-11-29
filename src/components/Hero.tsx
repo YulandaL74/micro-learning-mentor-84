@@ -1,10 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Target, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      {/* Header Navigation */}
+      <nav className="absolute top-0 left-0 right-0 z-20 px-4 py-4">
+        <div className="container mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="w-6 h-6 text-primary" />
+            <span className="text-xl font-bold text-foreground">Micro-Learning Mentor</span>
+          </div>
+          <ThemeToggle />
+        </div>
+      </nav>
+
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
       
       <div className="container px-4 py-20 mx-auto relative z-10">
