@@ -2,10 +2,14 @@
 
 An AI-powered micro-learning platform delivering 5-minute daily lessons for niche professional skills. Designed for mid-to-senior-level professionals and trainers who need to upskill quickly through bite-sized, scenario-based learning.
 
-![Micro-Learning Mentor](https://img.shields.io/badge/Built%20with-Lovable-ff69b4)
+![License](https://img.shields.io/badge/License-Proprietary-red)
+![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+![Status](https://img.shields.io/badge/Status-Deployed-success)
+![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-ff69b4)
 ![React](https://img.shields.io/badge/React-18.3-61dafb)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0-38bdf8)
+![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E)
 
 ## 🌟 Features
 
