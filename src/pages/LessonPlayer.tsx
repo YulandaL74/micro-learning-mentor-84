@@ -10,6 +10,7 @@ import { ArrowLeft, Clock, CheckCircle2 } from "lucide-react";
 import { LessonContent } from "@/components/lesson/LessonContent";
 import { LessonQuiz } from "@/components/lesson/LessonQuiz";
 import { SocialShare } from "@/components/lesson/SocialShare";
+import { BookmarkButton } from "@/components/lesson/BookmarkButton";
 
 interface Lesson {
   id: string;
@@ -270,6 +271,7 @@ const LessonPlayer = () => {
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{lesson.category.replace('_', ' ')}</Badge>
               <Badge variant="outline">{lesson.difficulty}</Badge>
+              <BookmarkButton lessonId={lesson.id} variant="outline" />
             </div>
           </div>
         </div>
