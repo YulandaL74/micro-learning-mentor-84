@@ -42,14 +42,25 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const passwordStrength = useMemo(() => calculatePasswordStrength(signupPassword), [signupPassword]);
+  const newPasswordStrength = useMemo(() => calculatePasswordStrength(newPassword), [newPassword]);
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Check if user is already logged in or in recovery mode
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      
+      // Check for password recovery token in URL
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      
+      if (type === 'recovery') {
+        setIsRecoveryMode(true);
+      } else if (session) {
         navigate("/dashboard");
       }
     };
@@ -120,6 +131,59 @@ const Auth = () => {
         });
         setShowResetForm(false);
         setResetEmail("");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure both passwords are the same.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password updated!",
+          description: "Your password has been successfully updated.",
+        });
+        setIsRecoveryMode(false);
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast({
@@ -203,11 +267,80 @@ const Auth = () => {
           </div>
           <CardTitle className="text-2xl">Micro-Learning Mentor</CardTitle>
           <CardDescription>
-            Master professional skills in just 5 minutes daily
+            {isRecoveryMode ? "Set your new password" : "Master professional skills in just 5 minutes daily"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          {isRecoveryMode ? (
+            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  minLength={6}
+                />
+                {newPassword.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex gap-1">
+                      <div className={`h-1 flex-1 rounded-full transition-colors ${
+                        newPasswordStrength === "weak" ? "bg-destructive" : 
+                        newPasswordStrength === "medium" ? "bg-warning" : 
+                        "bg-success"
+                      }`} />
+                      <div className={`h-1 flex-1 rounded-full transition-colors ${
+                        newPasswordStrength === "medium" ? "bg-warning" : 
+                        newPasswordStrength === "strong" ? "bg-success" : 
+                        "bg-muted"
+                      }`} />
+                      <div className={`h-1 flex-1 rounded-full transition-colors ${
+                        newPasswordStrength === "strong" ? "bg-success" : "bg-muted"
+                      }`} />
+                    </div>
+                    <p className={`text-xs font-medium ${
+                      newPasswordStrength === "weak" ? "text-destructive" : 
+                      newPasswordStrength === "medium" ? "text-warning" : 
+                      "text-success"
+                    }`}>
+                      Password strength: {newPasswordStrength.charAt(0).toUpperCase() + newPasswordStrength.slice(1)}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  minLength={6}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use 8+ characters with uppercase, lowercase, numbers, and symbols
+                </p>
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating password...
+                  </>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+            </form>
+          ) : (
+            <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -382,6 +515,7 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>
