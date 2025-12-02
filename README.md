@@ -1,73 +1,229 @@
-# Welcome to Micro-Learning Mentor
+# Micro-Learning Mentor
 
-## Project info
+An AI-powered micro-learning platform delivering 5-minute daily lessons for niche professional skills. Designed for mid-to-senior-level professionals and trainers who need to upskill quickly through bite-sized, scenario-based learning.
 
-**URL**: https://lovable.dev/projects/71dbb347-6a9f-4759-9f79-403a2f83afe7
+![Micro-Learning Mentor](https://img.shields.io/badge/Built%20with-Lovable-ff69b4)
+![React](https://img.shields.io/badge/React-18.3-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0-38bdf8)
 
-## How can I edit this code?
+## 🌟 Features
 
-There are several ways of editing your application.
+### Core Functionality
+- **5-Minute Micro-Lessons**: Bite-sized, focused lessons designed for busy professionals
+- **Scenario-Based Learning**: Interactive, real-world scenarios that mirror workplace challenges
+- **Interactive Quizzes**: Knowledge checks with immediate feedback after each lesson
+- **Skill Assessment**: Comprehensive assessment quiz to determine skill levels across categories
+- **Personalized Recommendations**: AI-powered lesson suggestions based on skill assessments
 
-**Use Lovable**
+### User Experience
+- **Progress Dashboard**: Track learning streaks, completed lessons, and skill progression
+- **Lessons Library**: Browse all available lessons with filtering by category and difficulty
+- **Dark Mode**: Comfortable learning experience in any lighting condition
+- **Responsive Design**: Seamless experience across desktop, tablet, and mobile devices
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/71dbb347-6a9f-4759-9f79-403a2f83afe7) and start prompting.
+### Content Categories
+- **Executive Communication**: Leadership messaging, stakeholder management, crisis communication
+- **Compliance Workflows**: Regulatory compliance, audit preparation, policy implementation
+- **AI Literacy**: Generative AI tools, prompt engineering, AI governance
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🚀 Technology Stack
 
-**Use your preferred IDE**
+### Frontend
+- **React 18.3** - Modern UI library with hooks
+- **TypeScript** - Type-safe development
+- **Vite** - Lightning-fast build tool
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - High-quality, accessible component library
+- **React Router** - Client-side routing
+- **TanStack Query** - Powerful data fetching and caching
+- **next-themes** - Dark mode support
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Backend (Lovable Cloud)
+- **Supabase** - PostgreSQL database with real-time capabilities
+- **Row Level Security (RLS)** - Database-level security policies
+- **Edge Functions** - Serverless backend logic
+- **Authentication** - Built-in user authentication system
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Additional Libraries
+- **Lucide React** - Beautiful, consistent icons
+- **React Hook Form** - Performant form management
+- **Zod** - TypeScript-first schema validation
+- **date-fns** - Modern date utility library
 
-Follow these steps:
+## 📋 Prerequisites
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+Before you begin, ensure you have the following installed:
+- **Node.js** (v18 or higher) - [Install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **npm** (comes with Node.js)
+- **Git** - For version control
+
+## 🛠️ Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
 git clone <YOUR_GIT_URL>
+cd micro-learning-mentor
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 2. Install Dependencies
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 3. Environment Variables
+
+The project uses Lovable Cloud, which automatically provides the necessary environment variables. The `.env` file is auto-generated and includes:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
+VITE_SUPABASE_PROJECT_ID=your_project_id
+```
+
+**Note**: These variables are automatically managed by Lovable Cloud. Do not edit the `.env` file manually.
+
+### 4. Start Development Server
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🗄️ Database Setup
 
-**Use GitHub Codespaces**
+The project uses Lovable Cloud with Supabase for backend functionality. The database schema includes:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Tables
+- **profiles** - User profile information
+- **lessons** - Lesson content and metadata
+- **quiz_questions** - Quiz questions for each lesson
+- **lesson_progress** - User progress tracking
+- **skill_assessments** - User skill assessment results
+- **user_streaks** - Learning streak tracking
+- **user_roles** - Role-based access control
 
-## What technologies are used for this project?
+### Security
+All tables are protected with Row Level Security (RLS) policies to ensure users can only access their own data.
 
-This project is built with:
+## 🚢 Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Deploy with Lovable
 
-## How can I deploy this project?
+1. Click the **Publish** button in the Lovable editor (top right on desktop)
+2. Your app will be deployed to a Lovable subdomain (e.g., `yourapp.lovable.app`)
+3. Backend changes deploy automatically; frontend changes require clicking **Update**
 
-Simply open [Lovable](https://lovable.dev/projects/71dbb347-6a9f-4759-9f79-403a2f83afe7) and click on Share -> Publish.
+### Deploy to Custom Domain
 
-## Can I connect a custom domain to my Lovable project?
+1. Navigate to **Project > Settings > Domains** in Lovable
+2. Click **Connect Domain**
+3. Follow the DNS configuration instructions
 
-Yes, you can!
+**Note**: A paid Lovable plan is required for custom domains.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Self-Hosting
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+You can deploy the frontend to any static hosting provider:
+
+```bash
+# Build for production
+npm run build
+
+# Preview production build locally
+npm run preview
+```
+
+The `dist` folder contains the production build ready for deployment to:
+- Vercel
+- Netlify
+- AWS S3 + CloudFront
+- GitHub Pages
+- Any static hosting service
+
+**Important**: For self-hosting, you'll need to configure the Supabase connection separately.
+
+## 📁 Project Structure
+
+```
+micro-learning-mentor/
+├── src/
+│   ├── components/        # Reusable React components
+│   │   ├── ui/           # shadcn/ui components
+│   │   ├── lesson/       # Lesson-specific components
+│   │   └── ...
+│   ├── pages/            # Route-level components
+│   │   ├── Index.tsx     # Landing page
+│   │   ├── Auth.tsx      # Authentication
+│   │   ├── Dashboard.tsx # User dashboard
+│   │   ├── LessonsLibrary.tsx
+│   │   └── LessonPlayer.tsx
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utility functions
+│   ├── integrations/     # External service integrations
+│   │   └── supabase/     # Supabase client and types
+│   ├── App.tsx           # Main app component
+│   ├── main.tsx          # Application entry point
+│   └── index.css         # Global styles and design tokens
+├── supabase/
+│   ├── functions/        # Edge functions
+│   └── migrations/       # Database migrations
+├── public/               # Static assets
+└── ...config files
+```
+
+## 🎨 Design System
+
+The project uses a custom design system built with Tailwind CSS:
+
+- **Design Tokens**: Defined in `src/index.css`
+- **Theme Configuration**: `tailwind.config.ts`
+- **Semantic Color Variables**: HSL-based color system
+- **Dark Mode**: System-based or manual toggle
+- **Typography**: Professional, calm aesthetic
+
+## 🤝 Contributing
+
+This is a personal project with public read access. While you're welcome to view and download the code, direct contributions are not accepted at this time.
+
+If you'd like to use this project as a foundation for your own work:
+1. Fork the repository
+2. Make your modifications in your fork
+3. Deploy your version independently
+
+## 📄 License
+
+This project is the intellectual property of the repository owner. All rights reserved.
+
+You may:
+- View and study the code
+- Download and run the code locally for educational purposes
+
+You may not:
+- Use this code commercially without permission
+- Redistribute this code
+- Claim this work as your own
+
+## 🆘 Support
+
+For questions or issues:
+1. Check the [Lovable documentation](https://docs.lovable.dev/)
+2. Review the code comments and inline documentation
+3. Open an issue in this repository for bug reports
+
+## 🔗 Links
+
+- **Project URL**: https://lovable.dev/projects/71dbb347-6a9f-4759-9f79-403a2f83afe7
+- **Lovable Docs**: https://docs.lovable.dev/
+- **Lovable Community**: https://discord.com/channels/1119885301872070706/1280461670979993613
+
+## 🏗️ Built With Lovable
+
+This project was built using [Lovable](https://lovable.dev), an AI-powered full-stack development platform that generates production-ready React applications with integrated backend capabilities.
+
+---
+
+**Made with ❤️ using Lovable**
