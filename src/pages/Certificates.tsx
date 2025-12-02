@@ -52,11 +52,11 @@ const Certificates = () => {
       // Fetch user profile for name
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("full_name, email")
+        .select("full_name")
         .eq("id", user.id)
         .maybeSingle();
 
-      setUserName(profileData?.full_name || profileData?.email || "Learner");
+      setUserName(profileData?.full_name || "Learner");
 
       // Fetch completed lessons with lesson details
       const { data, error } = await supabase

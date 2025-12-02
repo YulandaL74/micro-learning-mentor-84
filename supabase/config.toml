@@ -2,3 +2,6 @@ project_id = "huvejkapzlsqgqiqfrmf"
 
 [functions.recommend-lessons]
 verify_jwt = true
+
+[functions.validate-quiz-answer]
+verify_jwt = true

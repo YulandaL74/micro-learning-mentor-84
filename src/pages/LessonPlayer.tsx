@@ -28,7 +28,7 @@ interface QuizQuestion {
   id: string;
   question_text: string;
   options: string[];
-  correct_answer: number;
+  correct_answer?: number; // Optional - not sent to client for security
   explanation: string | null;
   order_index: number;
 }
@@ -73,10 +73,10 @@ const LessonPlayer = () => {
       if (lessonError) throw lessonError;
       setLesson(lessonData);
 
-      // Fetch quiz questions
+      // Fetch quiz questions (without correct_answer for security)
       const { data: questionsData, error: questionsError } = await supabase
         .from("quiz_questions")
-        .select("*")
+        .select("id, question_text, options, explanation, order_index")
         .eq("lesson_id", lessonId)
         .order("order_index");
 
@@ -87,7 +87,6 @@ const LessonPlayer = () => {
         id: q.id,
         question_text: q.question_text,
         options: (Array.isArray(q.options) ? q.options : []) as string[],
-        correct_answer: q.correct_answer,
         explanation: q.explanation,
         order_index: q.order_index,
       }));
