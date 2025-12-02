@@ -14,8 +14,10 @@ import {
   Clock,
   TrendingUp,
   BookOpen,
-  ArrowLeft
+  ArrowLeft,
+  Bookmark
 } from "lucide-react";
+import { BookmarkButton } from "@/components/lesson/BookmarkButton";
 
 interface Lesson {
   id: string;
@@ -44,18 +46,21 @@ const LessonsLibrary = () => {
   const { toast } = useToast();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [filteredLessons, setFilteredLessons] = useState<Lesson[]>([]);
+  const [bookmarkedLessonIds, setBookmarkedLessonIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("order");
+  const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false);
 
   useEffect(() => {
     fetchLessons();
+    fetchBookmarks();
   }, []);
 
   useEffect(() => {
     filterAndSortLessons();
-  }, [lessons, searchQuery, selectedCategory, sortBy]);
+  }, [lessons, searchQuery, selectedCategory, sortBy, showBookmarkedOnly, bookmarkedLessonIds]);
 
   const fetchLessons = async () => {
     try {
@@ -85,8 +90,31 @@ const LessonsLibrary = () => {
     }
   };
 
+  const fetchBookmarks = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("lesson_bookmarks")
+        .select("lesson_id")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      const ids = new Set(data?.map(b => b.lesson_id) || []);
+      setBookmarkedLessonIds(ids);
+    } catch (error) {
+      console.error("Error fetching bookmarks:", error);
+    }
+  };
+
   const filterAndSortLessons = () => {
     let filtered = [...lessons];
+
+    // Apply bookmarked filter
+    if (showBookmarkedOnly) {
+      filtered = filtered.filter(lesson => bookmarkedLessonIds.has(lesson.id));
+    }
 
     // Apply search filter
     if (searchQuery) {
@@ -193,6 +221,24 @@ const LessonsLibrary = () => {
       <main className="container mx-auto px-4 py-8">
         {/* Filters and Search */}
         <div className="mb-8 space-y-4">
+          {/* Bookmarks Toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant={showBookmarkedOnly ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
+              className="gap-2"
+            >
+              <Bookmark className={`h-4 w-4 ${showBookmarkedOnly ? 'fill-current' : ''}`} />
+              {showBookmarkedOnly ? "Showing Bookmarked" : "Show Bookmarked"}
+              {bookmarkedLessonIds.size > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {bookmarkedLessonIds.size}
+                </Badge>
+              )}
+            </Button>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
@@ -261,18 +307,21 @@ const LessonsLibrary = () => {
                       {lesson.difficulty}
                     </Badge>
                   </div>
-                  <CardTitle className="text-lg line-clamp-2">{lesson.title}</CardTitle>
-                  <CardDescription className="line-clamp-3">{lesson.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {lesson.duration_minutes} min
-                    </span>
-                  </div>
-                </CardContent>
-                <CardFooter>
+                   <CardTitle className="text-lg line-clamp-2">{lesson.title}</CardTitle>
+                   <CardDescription className="line-clamp-3">{lesson.description}</CardDescription>
+                 </CardHeader>
+                 <CardContent className="flex-1">
+                   <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                       <span className="flex items-center gap-1">
+                         <Clock className="h-4 w-4" />
+                         {lesson.duration_minutes} min
+                       </span>
+                     </div>
+                     <BookmarkButton lessonId={lesson.id} />
+                   </div>
+                 </CardContent>
+                 <CardFooter>
                   <Button
                     className="w-full"
                     onClick={() => navigate(`/lesson/${lesson.id}`)}
