@@ -5,12 +5,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle, Trophy } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuizQuestion {
   id: string;
   question_text: string;
   options: string[];
-  correct_answer: number;
+  correct_answer?: number; // Optional - validated server-side
   explanation: string | null;
   order_index: number;
 }
@@ -26,29 +27,58 @@ export const LessonQuiz = ({ questions, onComplete }: LessonQuizProps) => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [serverExplanation, setServerExplanation] = useState<string | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
-  const isCorrect = selectedAnswer === currentQuestion?.correct_answer;
 
-  const handleSubmitAnswer = () => {
-    if (selectedAnswer === null) return;
+  const handleSubmitAnswer = async () => {
+    if (selectedAnswer === null || isValidating) return;
+    
+    setIsValidating(true);
+    
+    try {
+      // Validate answer server-side
+      const { data, error } = await supabase.functions.invoke('validate-quiz-answer', {
+        body: {
+          questionId: currentQuestion.id,
+          selectedAnswer,
+        },
+      });
 
-    setShowFeedback(true);
-    if (isCorrect) {
-      setCorrectAnswers(prev => prev + 1);
+      if (error) {
+        console.error('Error validating answer:', error);
+        setIsValidating(false);
+        return;
+      }
+
+      setIsCorrect(data.isCorrect);
+      setServerExplanation(data.explanation);
+      setShowFeedback(true);
+      
+      if (data.isCorrect) {
+        setCorrectAnswers(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+    } finally {
+      setIsValidating(false);
     }
   };
 
   const handleNext = () => {
     if (isLastQuestion) {
-      const finalScore = Math.round(((correctAnswers + (isCorrect ? 1 : 0)) / questions.length) * 100);
+      const finalScore = Math.round((correctAnswers / questions.length) * 100);
       setIsComplete(true);
       onComplete(finalScore);
     } else {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedAnswer(null);
       setShowFeedback(false);
+      setIsCorrect(false);
+      setServerExplanation(null);
     }
   };
 
@@ -97,16 +127,16 @@ export const LessonQuiz = ({ questions, onComplete }: LessonQuizProps) => {
           value={selectedAnswer?.toString()}
           onValueChange={(value) => !showFeedback && setSelectedAnswer(parseInt(value))}
           className="space-y-3"
-          disabled={showFeedback}
+          disabled={showFeedback || isValidating}
         >
           {currentQuestion.options.map((option, index) => (
             <div
               key={index}
               className={`flex items-center space-x-3 border rounded-lg p-4 transition-all ${
                 showFeedback
-                  ? index === currentQuestion.correct_answer
+                  ? isCorrect && index === selectedAnswer
                     ? "border-success bg-success/5"
-                    : index === selectedAnswer
+                    : !isCorrect && index === selectedAnswer
                     ? "border-destructive bg-destructive/5"
                     : "border-border"
                   : "border-border hover:border-primary cursor-pointer"
@@ -119,20 +149,20 @@ export const LessonQuiz = ({ questions, onComplete }: LessonQuizProps) => {
               >
                 {option}
               </Label>
-              {showFeedback && index === currentQuestion.correct_answer && (
+              {showFeedback && isCorrect && index === selectedAnswer && (
                 <CheckCircle2 className="h-5 w-5 text-success" />
               )}
-              {showFeedback && index === selectedAnswer && index !== currentQuestion.correct_answer && (
+              {showFeedback && !isCorrect && index === selectedAnswer && (
                 <XCircle className="h-5 w-5 text-destructive" />
               )}
             </div>
           ))}
         </RadioGroup>
 
-        {showFeedback && currentQuestion.explanation && (
+        {showFeedback && serverExplanation && (
           <Alert className="mt-6">
             <AlertDescription>
-              <strong>Explanation:</strong> {currentQuestion.explanation}
+              <strong>Explanation:</strong> {serverExplanation}
             </AlertDescription>
           </Alert>
         )}
@@ -142,10 +172,10 @@ export const LessonQuiz = ({ questions, onComplete }: LessonQuizProps) => {
         {!showFeedback ? (
           <Button
             onClick={handleSubmitAnswer}
-            disabled={selectedAnswer === null}
+            disabled={selectedAnswer === null || isValidating}
             size="lg"
           >
-            Submit Answer
+            {isValidating ? "Validating..." : "Submit Answer"}
           </Button>
         ) : (
           <Button onClick={handleNext} size="lg">
