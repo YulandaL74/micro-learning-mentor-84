@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import LessonPlayer from "./pages/LessonPlayer";
 import LessonsLibrary from "./pages/LessonsLibrary";
+import Certificates from "./pages/Certificates";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/lessons" element={<LessonsLibrary />} />
             <Route path="/lesson/:lessonId" element={<LessonPlayer />} />
+            <Route path="/certificates" element={<Certificates />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

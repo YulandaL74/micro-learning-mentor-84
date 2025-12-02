@@ -17,7 +17,8 @@ import {
   User as UserIcon,
   Sparkles,
   RefreshCw,
-  Target
+  Target,
+  Award
 } from "lucide-react";
 import { SkillAssessmentModal } from "@/components/SkillAssessmentModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -248,6 +249,10 @@ const Dashboard = () => {
             <Button variant="outline" onClick={() => navigate("/lessons")}>
               <BookOpen className="h-4 w-4 mr-2" />
               Browse Lessons
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/certificates")}>
+              <Award className="h-4 w-4 mr-2" />
+              Certificates
             </Button>
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
