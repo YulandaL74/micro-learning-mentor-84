@@ -5,7 +5,6 @@ An AI-powered micro-learning platform delivering 5-minute daily lessons for nich
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 ![Version](https://img.shields.io/badge/Version-1.0.0-blue)
 ![Status](https://img.shields.io/badge/Status-Deployed-success)
-![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-ff69b4)
 ![React](https://img.shields.io/badge/React-18.3-61dafb)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0-38bdf8)
@@ -43,7 +42,7 @@ An AI-powered micro-learning platform delivering 5-minute daily lessons for nich
 - **TanStack Query** - Powerful data fetching and caching
 - **next-themes** - Dark mode support
 
-### Backend (Lovable Cloud)
+### Backend
 - **Supabase** - PostgreSQL database with real-time capabilities
 - **Row Level Security (RLS)** - Database-level security policies
 - **Edge Functions** - Serverless backend logic
@@ -79,7 +78,7 @@ npm install
 
 ### 3. Environment Variables
 
-The project uses Lovable Cloud, which automatically provides the necessary environment variables. The `.env` file is auto-generated and includes:
+The project uses Supabase for backend services. The `.env` file is auto-generated and includes:
 
 ```env
 VITE_SUPABASE_URL=your_supabase_url
@@ -87,7 +86,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
 VITE_SUPABASE_PROJECT_ID=your_project_id
 ```
 
-**Note**: These variables are automatically managed by Lovable Cloud. Do not edit the `.env` file manually.
+**Note**: These variables are automatically managed. Do not edit the `.env` file manually.
 
 ### 4. Start Development Server
 
@@ -99,7 +98,7 @@ The application will be available at `http://localhost:5173`
 
 ## 🗄️ Database Setup
 
-The project uses Lovable Cloud with Supabase for backend functionality. The database schema includes:
+The project uses Supabase for backend functionality. The database schema includes:
 
 ### Tables
 - **profiles** - User profile information
@@ -114,20 +113,6 @@ The project uses Lovable Cloud with Supabase for backend functionality. The data
 All tables are protected with Row Level Security (RLS) policies to ensure users can only access their own data.
 
 ## 🚢 Deployment
-
-### Deploy with Lovable
-
-1. Click the **Publish** button in the Lovable editor (top right on desktop)
-2. Your app will be deployed to a Lovable subdomain (e.g., `yourapp.lovable.app`)
-3. Backend changes deploy automatically; frontend changes require clicking **Update**
-
-### Deploy to Custom Domain
-
-1. Navigate to **Project > Settings > Domains** in Lovable
-2. Click **Connect Domain**
-3. Follow the DNS configuration instructions
-
-**Note**: A paid Lovable plan is required for custom domains.
 
 ### Self-Hosting
 
@@ -214,20 +199,9 @@ You may not:
 ## 🆘 Support
 
 For questions or issues:
-1. Check the [Lovable documentation](https://docs.lovable.dev/)
-2. Review the code comments and inline documentation
-3. Open an issue in this repository for bug reports
-
-## 🔗 Links
-
-- **Project URL**: https://lovable.dev/projects/71dbb347-6a9f-4759-9f79-403a2f83afe7
-- **Lovable Docs**: https://docs.lovable.dev/
-- **Lovable Community**: https://discord.com/channels/1119885301872070706/1280461670979993613
-
-## 🏗️ Built With Lovable
-
-This project was built using [Lovable](https://lovable.dev), an AI-powered full-stack development platform that generates production-ready React applications with integrated backend capabilities.
+1. Review the code comments and inline documentation
+2. Open an issue in this repository for bug reports
 
 ---
 
-**Made with ❤️ using Lovable**
+**Built with passion for professional learning**
