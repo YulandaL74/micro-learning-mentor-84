@@ -11,6 +11,7 @@ import { LessonContent } from "@/components/lesson/LessonContent";
 import { LessonQuiz } from "@/components/lesson/LessonQuiz";
 import { SocialShare } from "@/components/lesson/SocialShare";
 import { BookmarkButton } from "@/components/lesson/BookmarkButton";
+import { CertificateGenerator } from "@/components/lesson/CertificateGenerator";
 
 interface Lesson {
   id: string;
@@ -38,10 +39,15 @@ const LessonPlayer = () => {
   const { toast } = useToast();
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [currentStep, setCurrentStep] = useState<'content' | 'quiz'>('content');
+  const [currentStep, setCurrentStep] = useState<'content' | 'quiz' | 'completed'>('content');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [startTime] = useState(Date.now());
+  const [completionData, setCompletionData] = useState<{
+    score: number;
+    userName: string;
+    completionDate: string;
+  } | null>(null);
 
   useEffect(() => {
     if (lessonId) {
@@ -206,6 +212,13 @@ const LessonPlayer = () => {
         }
       }
 
+      // Fetch user profile for certificate
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
       // Show success message with streak info
       const message = streakData && streakData.last_activity_date !== today
         ? `You scored ${score}%. Streak: ${streakData.current_streak + 1} days! 🔥`
@@ -216,10 +229,13 @@ const LessonPlayer = () => {
         description: message,
       });
 
-      // Small delay to let the user see the completion message
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
+      // Set completion data and show certificate
+      setCompletionData({
+        score,
+        userName: profileData?.full_name || user.email || "Learner",
+        completionDate: new Date().toISOString(),
+      });
+      setCurrentStep('completed');
     } catch (error: any) {
       console.error("Error completing lesson:", error);
       toast({
@@ -282,13 +298,17 @@ const LessonPlayer = () => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">
-              {currentStep === 'content' ? 'Step 1: Lesson Content' : 'Step 2: Quiz'}
+              {currentStep === 'content' && 'Step 1: Lesson Content'}
+              {currentStep === 'quiz' && 'Step 2: Quiz'}
+              {currentStep === 'completed' && 'Completed!'}
             </span>
             <span className="text-sm text-muted-foreground">
-              {currentStep === 'content' ? '50%' : '100%'} Complete
+              {currentStep === 'content' && '50%'}
+              {currentStep === 'quiz' && '100%'}
+              {currentStep === 'completed' && '100%'} Complete
             </span>
           </div>
-          <Progress value={currentStep === 'content' ? 50 : 100} className="h-2" />
+          <Progress value={currentStep === 'completed' ? 100 : (currentStep === 'content' ? 50 : 100)} className="h-2" />
         </div>
       </div>
 
@@ -315,6 +335,39 @@ const LessonPlayer = () => {
                 </div>
                 <p className="text-muted-foreground">Saving your progress...</p>
               </div>
+            ) : currentStep === 'completed' && completionData ? (
+              <div className="space-y-6">
+                <div className="text-center py-8 space-y-4">
+                  <div className="flex justify-center">
+                    <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-10 h-10 text-success" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2">Congratulations!</h3>
+                    <p className="text-muted-foreground">
+                      You've completed this lesson with a score of {completionData.score}%
+                    </p>
+                  </div>
+                </div>
+
+                <CertificateGenerator
+                  userName={completionData.userName}
+                  lessonTitle={lesson.title}
+                  category={lesson.category}
+                  score={completionData.score}
+                  completionDate={completionData.completionDate}
+                />
+
+                <div className="flex justify-center pt-4">
+                  <Button
+                    onClick={() => navigate("/dashboard")}
+                    size="lg"
+                  >
+                    Continue to Dashboard
+                  </Button>
+                </div>
+              </div>
             ) : currentStep === 'content' ? (
               <LessonContent
                 content={lesson.content}
@@ -330,11 +383,11 @@ const LessonPlayer = () => {
           </CardContent>
         </Card>
 
-        {/* Social Share - Show after content is read */}
-        {!isSaving && lesson && (
+        {/* Social Share - Show during lesson, not on completion screen */}
+        {!isSaving && lesson && currentStep !== 'completed' && (
           <SocialShare 
             lessonTitle={lesson.title}
-            score={currentStep === 'quiz' ? undefined : undefined}
+            score={undefined}
             category={lesson.category}
           />
         )}
