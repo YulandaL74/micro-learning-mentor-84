@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, GraduationCap } from "lucide-react";
+
+type PasswordStrength = "weak" | "medium" | "strong";
+
+const calculatePasswordStrength = (password: string): PasswordStrength => {
+  if (password.length === 0) return "weak";
+  
+  let score = 0;
+  
+  // Length check
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  
+  // Complexity checks
+  if (/[a-z]/.test(password)) score += 1; // lowercase
+  if (/[A-Z]/.test(password)) score += 1; // uppercase
+  if (/[0-9]/.test(password)) score += 1; // numbers
+  if (/[^a-zA-Z0-9]/.test(password)) score += 1; // special chars
+  
+  if (score <= 2) return "weak";
+  if (score <= 4) return "medium";
+  return "strong";
+};
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,6 +42,8 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+
+  const passwordStrength = useMemo(() => calculatePasswordStrength(signupPassword), [signupPassword]);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -315,8 +339,34 @@ const Auth = () => {
                     disabled={isLoading}
                     minLength={6}
                   />
+                  {signupPassword.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex gap-1">
+                        <div className={`h-1 flex-1 rounded-full transition-colors ${
+                          passwordStrength === "weak" ? "bg-destructive" : 
+                          passwordStrength === "medium" ? "bg-warning" : 
+                          "bg-success"
+                        }`} />
+                        <div className={`h-1 flex-1 rounded-full transition-colors ${
+                          passwordStrength === "medium" ? "bg-warning" : 
+                          passwordStrength === "strong" ? "bg-success" : 
+                          "bg-muted"
+                        }`} />
+                        <div className={`h-1 flex-1 rounded-full transition-colors ${
+                          passwordStrength === "strong" ? "bg-success" : "bg-muted"
+                        }`} />
+                      </div>
+                      <p className={`text-xs font-medium ${
+                        passwordStrength === "weak" ? "text-destructive" : 
+                        passwordStrength === "medium" ? "text-warning" : 
+                        "text-success"
+                      }`}>
+                        Password strength: {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
+                      </p>
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">
-                    Must be at least 6 characters
+                    Use 8+ characters with uppercase, lowercase, numbers, and symbols
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>

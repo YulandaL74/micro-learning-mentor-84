@@ -101,7 +101,9 @@ All colors MUST be HSL.
     --ring: 180 70% 50%;
     
     --success: 150 55% 45%;
+    --success-foreground: 210 40% 98%;
     --warning: 40 85% 50%;
+    --warning-foreground: 0 0% 100%;
     
     --gradient-hero: linear-gradient(135deg, hsl(180 70% 40%), hsl(180 80% 50%));
     --gradient-card: linear-gradient(180deg, hsl(220 18% 16%), hsl(220 18% 18%));
