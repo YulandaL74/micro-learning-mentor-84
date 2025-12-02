@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Clock, CheckCircle2 } from "lucide-react";
 import { LessonContent } from "@/components/lesson/LessonContent";
 import { LessonQuiz } from "@/components/lesson/LessonQuiz";
+import { SocialShare } from "@/components/lesson/SocialShare";
 
 interface Lesson {
   id: string;
@@ -326,6 +327,15 @@ const LessonPlayer = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Social Share - Show after content is read */}
+        {!isSaving && lesson && (
+          <SocialShare 
+            lessonTitle={lesson.title}
+            score={currentStep === 'quiz' ? undefined : undefined}
+            category={lesson.category}
+          />
+        )}
       </main>
     </div>
   );
