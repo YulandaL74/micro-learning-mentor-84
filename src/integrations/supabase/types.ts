@@ -292,7 +292,44 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      quiz_questions_public: {
+        Row: {
+          created_at: string | null
+          explanation: string | null
+          id: string | null
+          lesson_id: string | null
+          options: Json | null
+          order_index: number | null
+          question_text: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          explanation?: string | null
+          id?: string | null
+          lesson_id?: string | null
+          options?: Json | null
+          order_index?: number | null
+          question_text?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          explanation?: string | null
+          id?: string | null
+          lesson_id?: string | null
+          options?: Json | null
+          order_index?: number | null
+          question_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
