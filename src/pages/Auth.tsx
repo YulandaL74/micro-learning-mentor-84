@@ -11,23 +11,35 @@ import { Loader2, GraduationCap } from "lucide-react";
 
 type PasswordStrength = "weak" | "medium" | "strong";
 
+interface PasswordRequirements {
+  minLength: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
+  hasNumber: boolean;
+  hasSpecial: boolean;
+}
+
+const checkPasswordRequirements = (password: string): PasswordRequirements => ({
+  minLength: password.length >= 12,
+  hasUppercase: /[A-Z]/.test(password),
+  hasLowercase: /[a-z]/.test(password),
+  hasNumber: /[0-9]/.test(password),
+  hasSpecial: /[^a-zA-Z0-9]/.test(password),
+});
+
+const isPasswordValid = (password: string): boolean => {
+  const req = checkPasswordRequirements(password);
+  return req.minLength && req.hasUppercase && req.hasLowercase && req.hasNumber && req.hasSpecial;
+};
+
 const calculatePasswordStrength = (password: string): PasswordStrength => {
   if (password.length === 0) return "weak";
   
-  let score = 0;
+  const req = checkPasswordRequirements(password);
+  const metCount = Object.values(req).filter(Boolean).length;
   
-  // Length check
-  if (password.length >= 8) score += 1;
-  if (password.length >= 12) score += 1;
-  
-  // Complexity checks
-  if (/[a-z]/.test(password)) score += 1; // lowercase
-  if (/[A-Z]/.test(password)) score += 1; // uppercase
-  if (/[0-9]/.test(password)) score += 1; // numbers
-  if (/[^a-zA-Z0-9]/.test(password)) score += 1; // special chars
-  
-  if (score <= 2) return "weak";
-  if (score <= 4) return "medium";
+  if (metCount <= 2) return "weak";
+  if (metCount <= 4) return "medium";
   return "strong";
 };
 
@@ -47,7 +59,9 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const passwordStrength = useMemo(() => calculatePasswordStrength(signupPassword), [signupPassword]);
+  const passwordRequirements = useMemo(() => checkPasswordRequirements(signupPassword), [signupPassword]);
   const newPasswordStrength = useMemo(() => calculatePasswordStrength(newPassword), [newPassword]);
+  const newPasswordRequirements = useMemo(() => checkPasswordRequirements(newPassword), [newPassword]);
 
   useEffect(() => {
     // Check if user is already logged in or in recovery mode
@@ -155,10 +169,10 @@ const Auth = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
+    if (!isPasswordValid(newPassword)) {
       toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters long.",
+        title: "Password requirements not met",
+        description: "Password must be at least 12 characters with uppercase, lowercase, numbers, and special characters.",
         variant: "destructive",
       });
       return;
@@ -200,10 +214,10 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (signupPassword.length < 6) {
+    if (!isPasswordValid(signupPassword)) {
       toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters long.",
+        title: "Password requirements not met",
+        description: "Password must be at least 12 characters with uppercase, lowercase, numbers, and special characters.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -283,7 +297,7 @@ const Auth = () => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  minLength={6}
+                  minLength={12}
                 />
                 {newPassword.length > 0 && (
                   <div className="space-y-2">
@@ -302,13 +316,23 @@ const Auth = () => {
                         newPasswordStrength === "strong" ? "bg-success" : "bg-muted"
                       }`} />
                     </div>
-                    <p className={`text-xs font-medium ${
-                      newPasswordStrength === "weak" ? "text-destructive" : 
-                      newPasswordStrength === "medium" ? "text-warning" : 
-                      "text-success"
-                    }`}>
-                      Password strength: {newPasswordStrength.charAt(0).toUpperCase() + newPasswordStrength.slice(1)}
-                    </p>
+                    <ul className="text-xs space-y-1 mt-2">
+                      <li className={newPasswordRequirements.minLength ? "text-success" : "text-muted-foreground"}>
+                        {newPasswordRequirements.minLength ? "✓" : "○"} At least 12 characters
+                      </li>
+                      <li className={newPasswordRequirements.hasUppercase ? "text-success" : "text-muted-foreground"}>
+                        {newPasswordRequirements.hasUppercase ? "✓" : "○"} One uppercase letter
+                      </li>
+                      <li className={newPasswordRequirements.hasLowercase ? "text-success" : "text-muted-foreground"}>
+                        {newPasswordRequirements.hasLowercase ? "✓" : "○"} One lowercase letter
+                      </li>
+                      <li className={newPasswordRequirements.hasNumber ? "text-success" : "text-muted-foreground"}>
+                        {newPasswordRequirements.hasNumber ? "✓" : "○"} One number
+                      </li>
+                      <li className={newPasswordRequirements.hasSpecial ? "text-success" : "text-muted-foreground"}>
+                        {newPasswordRequirements.hasSpecial ? "✓" : "○"} One special character
+                      </li>
+                    </ul>
                   </div>
                 )}
               </div>
@@ -322,11 +346,8 @@ const Auth = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  minLength={6}
+                  minLength={12}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Use 8+ characters with uppercase, lowercase, numbers, and symbols
-                </p>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
@@ -470,7 +491,7 @@ const Auth = () => {
                     onChange={(e) => setSignupPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    minLength={6}
+                    minLength={12}
                   />
                   {signupPassword.length > 0 && (
                     <div className="space-y-2">
@@ -489,13 +510,23 @@ const Auth = () => {
                           passwordStrength === "strong" ? "bg-success" : "bg-muted"
                         }`} />
                       </div>
-                      <p className={`text-xs font-medium ${
-                        passwordStrength === "weak" ? "text-destructive" : 
-                        passwordStrength === "medium" ? "text-warning" : 
-                        "text-success"
-                      }`}>
-                        Password strength: {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
-                      </p>
+                      <ul className="text-xs space-y-1 mt-2">
+                        <li className={passwordRequirements.minLength ? "text-success" : "text-muted-foreground"}>
+                          {passwordRequirements.minLength ? "✓" : "○"} At least 12 characters
+                        </li>
+                        <li className={passwordRequirements.hasUppercase ? "text-success" : "text-muted-foreground"}>
+                          {passwordRequirements.hasUppercase ? "✓" : "○"} One uppercase letter
+                        </li>
+                        <li className={passwordRequirements.hasLowercase ? "text-success" : "text-muted-foreground"}>
+                          {passwordRequirements.hasLowercase ? "✓" : "○"} One lowercase letter
+                        </li>
+                        <li className={passwordRequirements.hasNumber ? "text-success" : "text-muted-foreground"}>
+                          {passwordRequirements.hasNumber ? "✓" : "○"} One number
+                        </li>
+                        <li className={passwordRequirements.hasSpecial ? "text-success" : "text-muted-foreground"}>
+                          {passwordRequirements.hasSpecial ? "✓" : "○"} One special character
+                        </li>
+                      </ul>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
