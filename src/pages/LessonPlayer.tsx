@@ -73,12 +73,18 @@ const LessonPlayer = () => {
       if (lessonError) throw lessonError;
       setLesson(lessonData);
 
-      // Fetch quiz questions (without correct_answer for security)
+      // Fetch quiz questions from secure view (excludes correct_answer column)
       const { data: questionsData, error: questionsError } = await supabase
-        .from("quiz_questions")
+        .from("quiz_questions_public" as any)
         .select("id, question_text, options, explanation, order_index")
         .eq("lesson_id", lessonId)
-        .order("order_index");
+        .order("order_index") as { data: Array<{
+          id: string;
+          question_text: string;
+          options: unknown;
+          explanation: string | null;
+          order_index: number;
+        }> | null; error: Error | null };
 
       if (questionsError) throw questionsError;
       
